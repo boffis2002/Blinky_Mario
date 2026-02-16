@@ -7,34 +7,24 @@
 #define SALTO       -500.0f
 #define VELOCITA    180.0f
 
-typedef struct {
-    Vector2 pos;
-    Vector2 vel;
-    bool onGround;
-    Rectangle collider; 
-} Player;
-typedef struct {
-    Vector2 pos;
-    Rectangle collider;
-} Obj;
+
 int main(void)
 {
     srand(time(NULL));
     const int screenWidth = 960;
     const int screenHeight = 540;
     InitAudioDevice(); 
-    Music colonna = LoadMusicStream("./audio/colonnass.mp3");        
+    Music colonna = LoadMusicStream("./audio/colonna.mp3");        
+    Sound colpito = LoadSound("./audio/colpito.mp3");        
     InitWindow(screenWidth, screenHeight, "BlinkyMario");
     SetTargetFPS(60);
 
     Player mario = {0};
     mario.pos = (Vector2){100, 400};    
-    Obj mushroom = {0};
-    Obj platform = {0};
+    Obj obstacoles[50];
+    int obstacoles_size=makeObstacles(obstacoles,1);
     Obj grass = {0};
     grass.pos=(Vector2){0,500};
-    mushroom.pos = (Vector2){300, 470};
-    platform.pos = (Vector2){300, 370};
     Image image_bg = LoadImage("./images/bg.png"); 
     Image image_grass = LoadImage("./images/grass.png");
     Image image = LoadImage("./images/mario.png"); 
@@ -72,8 +62,7 @@ int main(void)
     UnloadImage(image_tree6);
 
     mario.collider = (Rectangle){mario.pos.x, mario.pos.y, 60, 77};
-    mushroom.collider = (Rectangle){mushroom.pos.x, mushroom.pos.y, 40, 40};
-    platform.collider = (Rectangle){platform.pos.x, platform.pos.y, 180, 20};
+    
 
     // rettangolo pavimento di prova
     Rectangle ground = {0, 505, screenWidth*2, 100};
@@ -84,8 +73,7 @@ int main(void)
     int stop=0;
     int death_click_counter=0;
     int stop_click_counter=0;
-    const int obj_size=3;
-    float * scene [obj_size]={&mushroom.pos.x,&platform.pos.x,&grass.pos.x};
+
     PlayMusicStream(colonna);
     SetExitKey(0);
 
@@ -106,7 +94,8 @@ int main(void)
         if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D))  {
             if(mario.pos.x+60>screenWidth/2){
                 mario.vel.x =  0;
-                for(int i=0;i<obj_size;i++) *scene[i]-=VELOCITA*GetFrameTime();
+                grass.pos.x-=VELOCITA*GetFrameTime();
+                for(int i=0;i<obstacoles_size;i++)obstacoles[i].pos.x-=VELOCITA*GetFrameTime();
             }
             else mario.vel.x =  VELOCITA;
         }
@@ -128,15 +117,11 @@ int main(void)
         mario.vel.y += GRAVITA * GetFrameTime();
         mario.pos.x += mario.vel.x * GetFrameTime();
         mario.pos.y += mario.vel.y * GetFrameTime();
-        if(tick_counter%150<=75)mushroom.pos.x += (VELOCITA-50) * GetFrameTime();
-        else mushroom.pos.x -= (VELOCITA-50) * GetFrameTime();
+    
+        
         // aggiorna collider
         mario.collider.x = mario.pos.x;
         mario.collider.y = mario.pos.y;
-        mushroom.collider.x = mushroom.pos.x;
-        mushroom.collider.y = mushroom.pos.y;
-        platform.collider.x = platform.pos.x;
-        platform.collider.y = platform.pos.y;
         // reset a terra + collisioni
         mario.onGround = false;
         if( IsKeyPressed(KEY_ESCAPE)) stop=1;
@@ -160,27 +145,28 @@ int main(void)
             }
         }
 
-        // piattaforma (solo dall'alto per ora)
-        if (CheckCollisionRecs(mario.collider, platform.collider))
-        {
-            if (mario.vel.y > 0 && 
-                mario.pos.y + mario.collider.height - mario.vel.y*GetFrameTime() <= platform.pos.y)
-            {
-                mario.pos.y = platform.pos.y - mario.collider.height;
-                mario.vel.y = 0;
-                mario.onGround = true;
+        for(int i=0;i<obstacoles_size;i++){
+            obstacoles[i].collider.x=obstacoles[i].pos.x;
+            obstacoles[i].collider.y=obstacoles[i].pos.y;
+            if(obstacoles[i].enemy){
+                if(tick_counter%150<=75)obstacoles[i].pos.x += (VELOCITA-100) * GetFrameTime();
+                else obstacoles[i].pos.x -= (VELOCITA-100) * GetFrameTime();
             }
-        }
-        if (CheckCollisionRecs(mario.collider, mushroom.collider))
-        {
-            death=1;
+            if (CheckCollisionRecs(mario.collider, obstacoles[i].collider))
+            {   
+                if(obstacoles[i].enemy==true) {PlaySound(colpito);death=1;break;}
+                if (mario.vel.y > 0 && 
+                    mario.pos.y + mario.collider.height - mario.vel.y*GetFrameTime() <= obstacoles[i].pos.y)
+                {
+                    mario.pos.y = obstacoles[i].pos.y - mario.collider.height;
+                    mario.vel.y = 0;
+                    mario.onGround = true;
+                }
+            }
         }
         
         tick_counter++;
 
-        }
-        else{
-           
         }
 
 
@@ -191,45 +177,47 @@ int main(void)
             for(int i=0;i<30;i++){
                 switch (treesT[i]){
                     case 0:
-                        DrawTexture(tree1 ,*scene[2]+treesX[i], 340, WHITE);
+                        DrawTexture(tree1 ,grass.pos.x+treesX[i], 340, WHITE);
                     break;
                     case 1:
-                        DrawTexture(tree2 ,*scene[2]+treesX[i], 380, WHITE);
+                        DrawTexture(tree2 ,grass.pos.x+treesX[i], 380, WHITE);
                     break;
                     case 2:
-                        DrawTexture(tree3 ,*scene[2]+treesX[i], 430, WHITE);
+                        DrawTexture(tree3 ,grass.pos.x+treesX[i], 430, WHITE);
                     break;
                     case 3:
-                        DrawTexture(tree4 ,*scene[2]+treesX[i], 395, WHITE);
+                        DrawTexture(tree4 ,grass.pos.x+treesX[i], 395, WHITE);
                     break;
                     case 4:
-                        DrawTexture(tree5 ,*scene[2]+treesX[i], 433, WHITE);
+                        DrawTexture(tree5 ,grass.pos.x+treesX[i], 433, WHITE);
                     break;
                     case 5:
-                        DrawTexture(tree6 ,*scene[2]+treesX[i], 420, WHITE);
+                        DrawTexture(tree6 ,grass.pos.x+treesX[i], 420, WHITE);
                     break;
                 }
 
             }
             DrawTexture(grasss,grass.pos.x,470,WHITE);
-
-            DrawRectangleRec(platform.collider, (Color){ 211, 176, 131, 255 });
+            for(int i=0;i<obstacoles_size;i++){
+                if(!obstacoles[i].enemy) DrawRectangleRec(obstacoles[i].collider, (Color){ 211, 176, 131, 255 });
+                else DrawTexture(mush ,obstacoles[i].pos.x, obstacoles[i].pos.y, WHITE);
+            }
             if(death==1) DrawTexture(mario_dead ,mario.pos.x, mario.pos.y, WHITE);
             else if(death==0&&mario.vel.y>=0) DrawTexture(mario_alive ,mario.pos.x, mario.pos.y, WHITE);
             else DrawTexture(mario_jump ,mario.pos.x, mario.pos.y, WHITE);
-            DrawTexture(mush ,mushroom.pos.x, mushroom.pos.y, WHITE);
             DrawText("Blinky_Mario", mario.pos.x, mario.pos.y-30, 20, BLACK);
             if(death==1){
-                int val=makeDeathMenu(screenWidth,screenHeight,death_click_counter);
+                int val=makeMenu(screenWidth,screenHeight,death_click_counter,2);
                 if(IsKeyPressed(KEY_DOWN)||IsKeyPressed(KEY_UP)) death_click_counter++;
                 if(val==1)break;
                 else if(val==2){
                     mario.pos.x=0;
+                    makeObstacles(obstacoles,1);
                     death=0;
                 }
             }
             if(stop==1){
-                int val=makeStopMenu(screenWidth,screenHeight,stop_click_counter);
+                int val=makeMenu(screenWidth,screenHeight,stop_click_counter,1);
                 if(IsKeyPressed(KEY_DOWN)||IsKeyPressed(KEY_UP)) stop_click_counter++;
                 if(val==1)break;
                 else if(val==2)stop=0;
@@ -239,5 +227,6 @@ int main(void)
     UnloadMusicStream(colonna);     
     CloseAudioDevice();
     CloseWindow();
+    for(int i=0;i<obstacoles_size;i++)free(&obstacoles[i]);
     return 0;
 }
