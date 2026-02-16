@@ -1,4 +1,5 @@
-#include "raylib.h"
+#include "raylib/include/raylib.h"
+
 
 int makeStopMenu(const int screenWidth,const int screenHeight,int actual){
     int click_counter=actual;

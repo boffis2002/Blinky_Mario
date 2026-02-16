@@ -1,31 +1,33 @@
-# Makefile per raylib su macOS (con Homebrew)
-# Nome eseguibile
-TARGET = BlinkyMario
+# Makefile per raylib su macOS – versione con raylib locale
 
-# Cartella build
-BUILD_DIR = build
+TARGET     = BlinkyMario
+BUILD_DIR  = build
+SOURCES    = main.c
+# SOURCES  = $(wildcard *.c)   # se vuoi compilare tutti i .c
 
-# File sorgente (cambia se hai più .c)
-SOURCES = main.c
-# SOURCES = $(wildcard *.c)   ← se vuoi compilare tutti i .c automaticamente
+CC         = gcc
+# CC       = clang           # se preferisci
 
-# Compilatore
-CC = gcc
-# CC = clang   ← puoi usare clang se preferisci
+CFLAGS     = -Wall -Wextra -std=c11 -O2
+# Per debug:  CFLAGS += -g -fsanitize=address
 
-CFLAGS = -Wall -Wextra -std=c11 -O2
-# Per debug: aggiungi -g -fsanitize=address
+# ───────────────────────────────────────────────
+# Percorsi locali a raylib (non dipende più da brew)
+# ───────────────────────────────────────────────
+RAYLIB_PATH   = ./raylib
+CFLAGS       += -I$(RAYLIB_PATH)/include
+LDFLAGS       = -L$(RAYLIB_PATH)/lib -lraylib
 
-# togli o commenta le righe vecchie
-# CFLAGS += $(shell brew --prefix raylib)/include
-# LDFLAGS = -L$(shell brew --prefix raylib)/lib -lraylib
+# Framework macOS necessari (sempre richiesti)
+LDFLAGS      += -framework CoreVideo
+LDFLAGS      += -framework IOKit
+LDFLAGS      += -framework Cocoa
+LDFLAGS      += -framework GLUT
+LDFLAGS      += -framework OpenGL
 
-# metti invece così (corretto con -I e -L)
-CFLAGS += -I$(shell brew --prefix raylib)/include
-LDFLAGS += -L$(shell brew --prefix raylib)/lib -lraylib
-
-# Framework macOS necessari
-LDFLAGS += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+# Se usi libraylib.a statica → di solito funziona meglio su macOS
+# Se invece hai libraylib.dylib → puoi aggiungere:
+# LDFLAGS      += -Wl,-rpath,@executable_path/raylib/lib
 
 all: $(TARGET)
 

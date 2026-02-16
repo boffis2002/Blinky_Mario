@@ -1,4 +1,4 @@
-#include "raylib.h"
+#include "raylib/include/raylib.h"
 #include "scenes.c"
 #include <stdlib.h>
 #include <stdio.h>
