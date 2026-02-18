@@ -1,5 +1,5 @@
 #include "raylib/include/raylib.h"
-#include "main.h"
+#include "utils.c"
 #include <stdlib.h>
 
 int makeMenu(const int screenWidth,const int screenHeight,int actual,int menu){
@@ -26,26 +26,11 @@ int makeMenu(const int screenWidth,const int screenHeight,int actual,int menu){
 int makeObstacles(Obj obstacles[],int level){
     switch(level){
         case 1:
-            Obj * o1=malloc(sizeof(Obj));
-            o1->pos=(Vector2){300, 370};
-            o1->collider = (Rectangle){o1->pos.x, o1->pos.y, 180, 20};
-            o1->enemy = false;
-            Obj * o2=malloc(sizeof(Obj));
-            o2->pos=(Vector2){600, 370};
-            o2->collider = (Rectangle){o2->pos.x, o2->pos.y, 180, 20};
-            o2->enemy = false;
-            Obj * o3=malloc(sizeof(Obj));
-            o3->pos=(Vector2){300, 470};
-            o3->collider = (Rectangle){o3->pos.x, o3->pos.y, 40, 40};
-            o3->enemy = true;
-            Obj * o4=malloc(sizeof(Obj));
-            o4->pos=(Vector2){950, 470};
-            o4->collider = (Rectangle){o4->pos.x, o4->pos.y, 40, 40};
-            o4->enemy = true;
-            Obj * o5=malloc(sizeof(Obj));
-            o5->pos=(Vector2){800, 470};
-            o5->collider = (Rectangle){o5->pos.x, o5->pos.y, 40, 40};
-            o5->enemy = true;
+            Obj * o1=makeObj((Vector2){600, 370},false,(Rectangle){o1->pos.x, o1->pos.y, 180, 20},"brick.png");
+            Obj * o2=makeObj((Vector2){300, 370},false,(Rectangle){o2->pos.x, o2->pos.y, 180, 20},"brick.png");
+            Obj * o3=makeObj((Vector2){950, 370},false,(Rectangle){o3->pos.x, o3->pos.y, 180, 20},"brick.png");
+            Obj * o4=makeObj((Vector2){600, 470},true,(Rectangle){o4->pos.x, o4->pos.y, 40, 40},"mushroom.png");
+            Obj * o5=makeObj((Vector2){800, 470},true,(Rectangle){o5->pos.x, o5->pos.y, 40, 40},"mushroom.png");
             obstacles[0]=*o1;
             obstacles[1]=*o2;
             obstacles[2]=*o3;
@@ -54,4 +39,6 @@ int makeObstacles(Obj obstacles[],int level){
             return 5;
         break;
     }
+
+    return -1;
 }

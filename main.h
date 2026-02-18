@@ -10,4 +10,5 @@ typedef struct {
     Vector2 pos;
     bool enemy;
     Rectangle collider;
+    char image[16];
 } Obj;
